@@ -1,5 +1,5 @@
 import logging
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from datetime import datetime
 import os
@@ -43,17 +43,23 @@ async def absen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def proses_lokasi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menerima lokasi, memvalidasi, dan menampilkan tombol Absen."""
     user = update.effective_user
+    
+    # Hapus tombol "Dapatkan Lokasi" dari tampilan
+    await update.message.reply_text(
+        "Mengecek lokasi Anda...",
+        reply_markup=ReplyKeyboardRemove()
+    )
+
     lokasi_pegawai = (update.message.location.latitude, update.message.location.longitude)
     
     # Simpan lokasi dan ID pengguna di context.user_data
-    # Ini diperlukan agar data lokasi bisa diakses di fungsi lain
     context.user_data['lokasi'] = lokasi_pegawai
     context.user_data['id'] = user.id
 
     jarak_ke_kantor = geodesic(lokasi_pegawai, KOORDINAT_KANTOR).meters
 
     if jarak_ke_kantor <= TOLERANSI_JARAK:
-        # Hapus keyboard lokasi dan tampilkan tombol Absen
+        # Tampilkan tombol Absen
         await update.message.reply_text(
             f"Lokasi Anda diterima. Jarak Anda dari kantor: {jarak_ke_kantor:.2f} meter.\n\n"
             "Sekarang, silakan tekan tombol **Absen** untuk mengonfirmasi.",
