@@ -16,7 +16,7 @@ logging.basicConfig(
 )
 
 # Koordinat Kantor Dinas Pendidikan dan Kebudayaan Kabupaten Sarolangun
-KOORDINAT_KANTOR = (-2.3132841, 102.7473080)  
+KOORDINAT_KANTOR = (-2.3132841, 102.7473080)
 # Toleransi jarak dalam meter
 TOLERANSI_JARAK = 100 
 
