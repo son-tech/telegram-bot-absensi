@@ -31,7 +31,7 @@ async def absen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     id_telegram = user.id
     
     # Tentukan zona waktu Indonesia Barat (WIB)
-    zona_wib = ZoneInfo("Asia/Jakarta") # "Asia/Jakarta" adalah ID zona waktu untuk WIB
+    zona_wib = pytz.timezone('Asia/Jakarta')
     
     # Ambil waktu absensi saat ini dalam zona waktu WIB
     waktu_absen = datetime.now(zona_wib)
