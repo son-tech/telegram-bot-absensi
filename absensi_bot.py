@@ -2,6 +2,8 @@ import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from datetime import datetime
+import pytz
+from zoneinfo import ZoneInfo
 import os
 
 # Setel token bot Anda dari variabel lingkungan.
@@ -25,13 +27,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 async def absen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Menangani perintah /absen dan mencatat data absensi."""
     user = update.effective_user
     nama_pegawai = user.full_name
     id_telegram = user.id
     
-    # Ambil waktu absensi saat ini
-    waktu_absen = datetime.now()
+    # Tentukan zona waktu Indonesia Barat (WIB)
+    zona_wib = ZoneInfo("Asia/Jakarta") # "Asia/Jakarta" adalah ID zona waktu untuk WIB
+    
+    # Ambil waktu absensi saat ini dalam zona waktu WIB
+    waktu_absen = datetime.now(zona_wib)
     tanggal_absen = waktu_absen.strftime("%Y-%m-%d")
     jam_absen = waktu_absen.strftime("%H:%M:%S")
 
