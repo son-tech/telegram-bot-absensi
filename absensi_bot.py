@@ -3,7 +3,6 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from datetime import datetime
 import pytz
-from zoneinfo import ZoneInfo
 import os
 
 # Setel token bot Anda dari variabel lingkungan.
