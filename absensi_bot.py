@@ -4,11 +4,16 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 from datetime import datetime
 import pytz
 import os
+from geopy.distance import geodesic
 
 # Setel token bot Anda dari variabel lingkungan.
 # Ini lebih aman daripada menaruh token langsung di dalam kode.
 # Render akan membaca nilai ini dari Environment Variable yang sudah Anda buat.
 TOKEN = os.environ.get("TOKEN")
+
+KOORDINAT_KANTOR = (-2.969146, 102.990422)  
+# Toleransi jarak dalam meter
+TOLERANSI_JARAK = 100 
 
 # Konfigurasi logging agar lebih mudah melacak aktivitas bot
 logging.basicConfig(
