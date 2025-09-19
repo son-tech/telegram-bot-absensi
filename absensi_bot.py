@@ -1,10 +1,11 @@
 import logging
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
+from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from datetime import datetime
 import os
 import pytz
 from geopy.distance import geodesic
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Setel token bot Anda dari variabel lingkungan.
 TOKEN = os.environ.get("TOKEN")
@@ -30,25 +31,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 async def absen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Menangani perintah /absen dan menampilkan tombol untuk mendapatkan lokasi."""
-    # Membuat tombol "Dapatkan Lokasi"
-    keyboard = [[KeyboardButton("Dapatkan Lokasi", request_location=True)]]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
-
+    """Menangani perintah /absen dan meminta pengguna mengirimkan lokasi secara langsung."""
     await update.message.reply_text(
-        "Silakan tekan tombol di bawah untuk membagikan lokasi Anda saat ini.",
-        reply_markup=reply_markup
+        "Silakan kirimkan lokasi Anda saat ini. Pastikan Anda berada di sekitar kantor.\n"
+        "Alamat Kantor: Komplek Perkantoran Pemda Gunung Kembang, Sarolangun, Jambi."
     )
 
 async def proses_lokasi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menerima lokasi, memvalidasi, dan menampilkan tombol Absen."""
     user = update.effective_user
-
-    # Hapus tombol "Dapatkan Lokasi" dari tampilan
-    await update.message.reply_text(
-        "Mengecek lokasi Anda...",
-        reply_markup=ReplyKeyboardRemove()
-    )
 
     lokasi_pegawai = (update.message.location.latitude, update.message.location.longitude)
 
@@ -85,7 +76,7 @@ async def absen_sekarang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return
 
     # Lakukan pencatatan absensi
-    user = update.effective_user
+    user = query.from_user
     nama_pegawai = user.full_name
 
     zona_wib = pytz.timezone('Asia/Jakarta')
@@ -124,8 +115,8 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("absen", absen))
 
-    # Tambahkan handler untuk pesan lokasi dan batasi agar tidak memproses lokasi yang disertai teks
-    application.add_handler(MessageHandler(filters.LOCATION & (~filters.TEXT), proses_lokasi))
+    # Tambahkan handler untuk pesan lokasi
+    application.add_handler(MessageHandler(filters.LOCATION, proses_lokasi))
 
     # Tambahkan handler untuk Callback Query dari tombol "Absen"
     application.add_handler(CallbackQueryHandler(absen_sekarang, pattern='^absen_sekarang$'))
