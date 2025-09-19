@@ -16,9 +16,9 @@ logging.basicConfig(
 )
 
 # Koordinat Kantor Dinas Pendidikan dan Kebudayaan Kabupaten Sarolangun
-KOORDINAT_KANTOR = (-2.969146, 102.990422)
+KOORDINAT_KANTOR = (-2.313252, 102.747310) 
 # Toleransi jarak dalam meter
-TOLERANSI_JARAK = 100 
+TOLERANSI_JARAK = 100
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Mengirim pesan selamat datang saat perintah /start dikirim."""
