@@ -16,7 +16,7 @@ logging.basicConfig(
 )
 
 # Koordinat Kantor Dinas Pendidikan dan Kebudayaan Kabupaten Sarolangun
-KOORDINAT_KANTOR = (-2.313252, 102.747310) 
+KOORDINAT_KANTOR = (-2.313252, 102.747310)
 # Toleransi jarak dalam meter
 TOLERANSI_JARAK = 100
 
@@ -36,14 +36,14 @@ async def absen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
 
     await update.message.reply_text(
-        "Silakan tekan tombol dapatkan lokasi untuk membagikan lokasi Anda saat ini.",
+        "Silakan tekan tombol di bawah untuk membagikan lokasi Anda saat ini.",
         reply_markup=reply_markup
     )
 
 async def proses_lokasi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menerima lokasi, memvalidasi, dan menampilkan tombol Absen."""
     user = update.effective_user
-    
+
     # Hapus tombol "Dapatkan Lokasi" dari tampilan
     await update.message.reply_text(
         "Mengecek lokasi Anda...",
@@ -51,7 +51,7 @@ async def proses_lokasi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     )
 
     lokasi_pegawai = (update.message.location.latitude, update.message.location.longitude)
-    
+
     # Simpan lokasi dan ID pengguna di context.user_data
     context.user_data['lokasi'] = lokasi_pegawai
     context.user_data['id'] = user.id
@@ -79,7 +79,7 @@ async def absen_sekarang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # Ambil data lokasi dan ID dari user_data
     lokasi_pegawai = context.user_data.get('lokasi')
     id_telegram = context.user_data.get('id')
-    
+
     if not lokasi_pegawai or not id_telegram:
         await query.edit_message_text("Maaf, data lokasi tidak ditemukan. Silakan mulai ulang absensi dengan /absen.")
         return
@@ -87,19 +87,19 @@ async def absen_sekarang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # Lakukan pencatatan absensi
     user = update.effective_user
     nama_pegawai = user.full_name
-    
+
     zona_wib = pytz.timezone('Asia/Jakarta')
     waktu_absen = datetime.now(zona_wib)
     tanggal_absen = waktu_absen.strftime("%Y-%m-%d")
     jam_absen = waktu_absen.strftime("%H:%M:%S")
 
     jarak_ke_kantor = geodesic(lokasi_pegawai, KOORDINAT_KANTOR).meters
-    
+
     file_path = "data_absensi.txt"
     if not os.path.exists(file_path):
         with open(file_path, 'w') as f:
             f.write("ID Telegram, Nama Pegawai, Tanggal, Jam, Jarak (m)\n")
-        
+
     with open(file_path, 'a') as f:
         f.write(f"{id_telegram}, {nama_pegawai}, {tanggal_absen}, {jam_absen}, {jarak_ke_kantor:.2f}\n")
 
@@ -119,20 +119,20 @@ def main() -> None:
         return
 
     application = Application.builder().token(TOKEN).build()
-    
+
     # Tambahkan handler untuk perintah /start dan /absen
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("absen", absen))
-    
-    # Tambahkan handler untuk pesan lokasi
+
+    # Tambahkan handler untuk pesan lokasi dan batasi agar tidak memproses lokasi yang disertai teks
     application.add_handler(MessageHandler(filters.LOCATION & (~filters.TEXT), proses_lokasi))
 
     # Tambahkan handler untuk Callback Query dari tombol "Absen"
     application.add_handler(CallbackQueryHandler(absen_sekarang, pattern='^absen_sekarang$'))
-    
+
     # Tambahkan handler untuk pesan yang tidak dikenali
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), unknown))
-    
+
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
