@@ -36,7 +36,7 @@ async def absen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
 
     await update.message.reply_text(
-        "Silakan tekan tombol di bawah untuk membagikan lokasi Anda saat ini.",
+        "Silakan tekan tombol dapatkan lokasi untuk membagikan lokasi Anda saat ini.",
         reply_markup=reply_markup
     )
 
