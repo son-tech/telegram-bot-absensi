@@ -125,7 +125,7 @@ def main() -> None:
     application.add_handler(CommandHandler("absen", absen))
     
     # Tambahkan handler untuk pesan lokasi
-    application.add_handler(MessageHandler(filters.LOCATION, proses_lokasi))
+    application.add_handler(MessageHandler(filters.LOCATION & (~filters.TEXT), proses_lokasi))
 
     # Tambahkan handler untuk Callback Query dari tombol "Absen"
     application.add_handler(CallbackQueryHandler(absen_sekarang, pattern='^absen_sekarang$'))
