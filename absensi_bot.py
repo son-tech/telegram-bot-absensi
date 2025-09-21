@@ -33,13 +33,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def absen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menangani perintah /absen dan meminta pengguna mengirimkan lokasi secara langsung."""
     await update.message.reply_text(
-        "Silakan kirimkan lokasi Anda saat ini. Pastikan Anda berada di sekitar kantor.\n"
-        "Alamat Kantor: Komplek Perkantoran Pemda Gunung Kembang, Sarolangun, Jambi."
+        "Silakan kirimkan lokasi Anda saat ini. Pastikan Anda sudah mengaktifkan GPS.\n"
+        "Untuk mengirim lokasi, klik ikon **penjepit kertas**, lalu pilih **Lokasi** dan kirimkan lokasi Anda.",
+        reply_markup=ReplyKeyboardRemove()
     )
 
 async def proses_lokasi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menerima lokasi, memvalidasi, dan menampilkan tombol Absen."""
     user = update.effective_user
+
+    # Cek apakah lokasi adalah "live location" atau lokasi biasa (statik).
+    # Telegram API tidak secara eksplisit menandai lokasi manual, tetapi
+    # lokasi dari GPS tidak memiliki properti teks.
+    if update.message.location.live_period or update.message.text:
+        # Jika lokasi adalah live location atau dikirim dengan teks (kemungkinan manual)
+        # Abaikan pesan ini
+        await update.message.reply_text("Maaf, silakan kirimkan lokasi Anda saat ini (lokasi statis).")
+        return
 
     lokasi_pegawai = (update.message.location.latitude, update.message.location.longitude)
 
