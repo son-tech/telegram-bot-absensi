@@ -1,11 +1,10 @@
 import logging
-from telegram import Update, ReplyKeyboardRemove
+from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from datetime import datetime
 import os
 import pytz
 from geopy.distance import geodesic
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Setel token bot Anda dari variabel lingkungan.
 TOKEN = os.environ.get("TOKEN")
@@ -31,24 +30,32 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 async def absen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Menangani perintah /absen dan meminta pengguna mengirimkan lokasi secara langsung."""
+    """Menangani perintah /absen dan menampilkan tombol untuk mendapatkan lokasi."""
+    keyboard = [[KeyboardButton("Dapatkan Lokasi", request_location=True)]]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+
     await update.message.reply_text(
-        "Silakan kirimkan lokasi Anda saat ini. Pastikan Anda sudah mengaktifkan GPS.\n"
-        "Untuk mengirim lokasi, klik ikon **penjepit kertas**, lalu pilih **Lokasi** dan kirimkan lokasi Anda.",
-        reply_markup=ReplyKeyboardRemove()
+        "Silakan tekan tombol di bawah untuk membagikan lokasi Anda saat ini.",
+        reply_markup=reply_markup
     )
 
 async def proses_lokasi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menerima lokasi, memvalidasi, dan menampilkan tombol Absen."""
     user = update.effective_user
 
-    # Cek apakah lokasi adalah "live location" atau lokasi biasa (statik).
-    # Telegram API tidak secara eksplisit menandai lokasi manual, tetapi
-    # lokasi dari GPS tidak memiliki properti teks.
-    if update.message.location.live_period or update.message.text:
-        # Jika lokasi adalah live location atau dikirim dengan teks (kemungkinan manual)
-        # Abaikan pesan ini
-        await update.message.reply_text("Maaf, silakan kirimkan lokasi Anda saat ini (lokasi statis).")
+    # Hapus tombol "Dapatkan Lokasi" dari tampilan
+    await update.message.reply_text(
+        "Mengecek lokasi Anda...",
+        reply_markup=ReplyKeyboardRemove()
+    )
+
+    # Periksa apakah lokasi memiliki teks atau live_period.
+    # Jika ya, kemungkinan besar itu adalah lokasi manual atau live location.
+    if update.message.text or update.message.location.live_period:
+        await update.message.reply_text(
+            "Maaf, Anda tidak bisa memilih lokasi secara manual. "
+            "Silakan pastikan GPS Anda aktif dan kirimkan lokasi saat ini."
+        )
         return
 
     lokasi_pegawai = (update.message.location.latitude, update.message.location.longitude)
