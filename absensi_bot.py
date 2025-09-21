@@ -55,7 +55,7 @@ async def proses_lokasi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     lokasi_pegawai = update.message.location
 
-    # Periksa apakah akurasi ada sebelum membandingkannya
+    # Tambahkan pemeriksaan ini untuk mencegah error
     if lokasi_pegawai.horizontal_accuracy is not None and lokasi_pegawai.horizontal_accuracy > AKURASI_MAKSIMUM:
         await update.message.reply_text(
             f"Maaf, akurasi lokasi Anda terlalu rendah ({lokasi_pegawai.horizontal_accuracy:.2f} meter). "
