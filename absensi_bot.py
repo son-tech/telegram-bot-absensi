@@ -34,29 +34,28 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 async def absen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Menangani perintah /absen dan menampilkan tombol untuk mendapatkan lokasi."""
-    keyboard = [[KeyboardButton("Dapatkan Lokasi", request_location=True)]]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
-
+    """Menangani perintah /absen dan meminta pengguna mengirimkan lokasi secara langsung."""
     await update.message.reply_text(
-        "Silakan tekan tombol di bawah untuk membagikan lokasi Anda saat ini. Pastikan GPS Anda aktif.",
-        reply_markup=reply_markup
+        "Silakan kirimkan lokasi Anda saat ini. Pastikan Anda sudah mengaktifkan GPS.\n\n"
+        "Untuk mengirim lokasi, klik ikon **penjepit kertas**, lalu pilih **Lokasi** dan kirimkan lokasi Anda saat ini."
     )
 
 async def proses_lokasi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menerima lokasi, memvalidasi, dan menampilkan tombol Absen."""
     user = update.effective_user
 
-    # Hapus tombol "Dapatkan Lokasi" dari tampilan
-    await update.message.reply_text(
-        "Mengecek lokasi Anda...",
-        reply_markup=ReplyKeyboardRemove()
-    )
-
     lokasi_pegawai = update.message.location
 
-    # Tambahkan pemeriksaan ini untuk mencegah error
-    if lokasi_pegawai.horizontal_accuracy is not None and lokasi_pegawai.horizontal_accuracy > AKURASI_MAKSIMUM:
+    # Periksa apakah lokasi memiliki akurasi. Jika tidak ada, kemungkinan itu lokasi palsu.
+    if lokasi_pegawai.horizontal_accuracy is None:
+        await update.message.reply_text(
+            "Maaf, lokasi yang Anda kirimkan tidak valid. "
+            "Silakan pastikan GPS Anda aktif dan kirimkan lokasi saat ini."
+        )
+        return
+
+    # Periksa akurasi lokasi. Jika terlalu besar, tolak.
+    if lokasi_pegawai.horizontal_accuracy > AKURASI_MAKSIMUM:
         await update.message.reply_text(
             f"Maaf, akurasi lokasi Anda terlalu rendah ({lokasi_pegawai.horizontal_accuracy:.2f} meter). "
             "Silakan pastikan GPS Anda aktif dan kirimkan lokasi saat ini."
