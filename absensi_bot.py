@@ -20,6 +20,10 @@ KOORDINAT_KANTOR = (-2.313252, 102.747310)
 # Toleransi jarak dalam meter
 TOLERANSI_JARAK = 100
 
+# Akurasi maksimum yang diizinkan untuk absensi
+# Lokasi GPS biasanya memiliki akurasi di bawah 50 meter
+AKURASI_MAKSIMUM = 100
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Mengirim pesan selamat datang saat perintah /start dikirim."""
     user = update.effective_user
@@ -35,7 +39,7 @@ async def absen(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
 
     await update.message.reply_text(
-        "Silakan tekan tombol di bawah untuk membagikan lokasi Anda saat ini.",
+        "Silakan tekan tombol di bawah untuk membagikan lokasi Anda saat ini. Pastikan GPS Anda aktif.",
         reply_markup=reply_markup
     )
 
@@ -49,22 +53,24 @@ async def proses_lokasi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         reply_markup=ReplyKeyboardRemove()
     )
 
-    # Periksa apakah lokasi memiliki teks atau live_period.
-    # Jika ya, kemungkinan besar itu adalah lokasi manual atau live location.
-    if update.message.text or update.message.location.live_period:
+    lokasi_pegawai = update.message.location
+
+    # Periksa akurasi lokasi. Lokasi manual memiliki akurasi yang sangat tinggi.
+    if lokasi_pegawai.horizontal_accuracy > AKURASI_MAKSIMUM:
         await update.message.reply_text(
-            "Maaf, Anda tidak bisa memilih lokasi secara manual. "
+            f"Maaf, akurasi lokasi Anda terlalu rendah ({lokasi_pegawai.horizontal_accuracy:.2f} meter). "
             "Silakan pastikan GPS Anda aktif dan kirimkan lokasi saat ini."
         )
         return
 
-    lokasi_pegawai = (update.message.location.latitude, update.message.location.longitude)
+    # Ambil koordinat setelah validasi akurasi
+    lokasi_koordinat = (lokasi_pegawai.latitude, lokasi_pegawai.longitude)
 
     # Simpan lokasi dan ID pengguna di context.user_data
-    context.user_data['lokasi'] = lokasi_pegawai
+    context.user_data['lokasi'] = lokasi_koordinat
     context.user_data['id'] = user.id
 
-    jarak_ke_kantor = geodesic(lokasi_pegawai, KOORDINAT_KANTOR).meters
+    jarak_ke_kantor = geodesic(lokasi_koordinat, KOORDINAT_KANTOR).meters
 
     if jarak_ke_kantor <= TOLERANSI_JARAK:
         # Tampilkan tombol Absen
